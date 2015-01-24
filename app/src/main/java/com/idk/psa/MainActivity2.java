@@ -55,7 +55,7 @@ public class MainActivity2 extends ActionBarActivity implements SensorEventListe
     @Override
     protected void onResume() {
         super.onResume();
-        mSensorManager.registerListener(this, mSensor,SensorManager.SENSOR_DELAY_NORMAL);
+        mSensorManager.registerListener(this, mSensor,SensorManager.SENSOR_DELAY_FASTEST);
     }
 
     @Override
@@ -89,10 +89,15 @@ public class MainActivity2 extends ActionBarActivity implements SensorEventListe
 
     @Override
     public void onSensorChanged(SensorEvent event) {
-        float rootSumSquare = event.values[0]*event.values[0] +
+        float gravity = SensorManager.STANDARD_GRAVITY;
+        double rootSumSquare = Math.sqrt(event.values[0]*event.values[0] +
                 event.values[1]*event.values[1] +
-                (event.values[2])*(event.values[2]);
-        Toast.makeText(this,String.valueOf(rootSumSquare),Toast.LENGTH_SHORT).show();
+                (event.values[2])*(event.values[2]));
+        if (rootSumSquare < 2.5) {
+            Toast.makeText(this, "FALLING "+ String.valueOf(rootSumSquare), Toast.LENGTH_SHORT).show();
+        } else if (rootSumSquare > 18.5) {
+            Toast.makeText(this, "IMPACT "+ String.valueOf(rootSumSquare), Toast.LENGTH_SHORT).show();
+        }
     }
 
     @Override
