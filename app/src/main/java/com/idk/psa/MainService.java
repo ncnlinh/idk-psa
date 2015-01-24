@@ -80,25 +80,36 @@ public class MainService extends IntentService {
                 DetectedActivity betterActivity = walkingOrRunning(result.getProbableActivities());
                 if (null != betterActivity)
                     mostProbableActivity = betterActivity;
-            }
-            if (mostProbableActivity.getType() == DetectedActivity.RUNNING) {
+                Log.i("S", "got into running");
+                Intent i = new Intent("com.idk.psa.ACTIVITY_RECOGNITION_DATA");
+                i.putExtra("Activity", getType(mostProbableActivity.getType()) );
+                i.putExtra("Confidence", mostProbableActivity.getConfidence());
+                sendBroadcast(i);
+            } else if (activityType == DetectedActivity.RUNNING || activityType == DetectedActivity.WALKING) {
+                Log.i("S", "got into "+ getType(result.getMostProbableActivity().getType()));
                 Intent i = new Intent("com.idk.psa.ACTIVITY_RECOGNITION_DATA");
                 i.putExtra("Activity", getType(result.getMostProbableActivity().getType()) );
                 i.putExtra("Confidence", result.getMostProbableActivity().getConfidence());
                 sendBroadcast(i);
-
+            } else {
+                Log.i("S", "got into "+getType(result.getMostProbableActivity().getType())+" in mainservice");
+                Intent i = new Intent("com.idk.psa.ACTIVITY_RECOGNITION_DATA");
+                i.putExtra("Activity", getType(result.getMostProbableActivity().getType()));
+                i.putExtra("Confidence", result.getMostProbableActivity().getConfidence());
+                sendBroadcast(i);
             }
-            Intent i = new Intent("com.idk.psa.ACTIVITY_RECOGNITION_DATA");
-            i.putExtra("Activity", "Doing sth" );
-            i.putExtra("Confidence", result.getMostProbableActivity().getConfidence());
-            sendBroadcast(i);
-            Log.d(this.getClass().getSimpleName(),"send broadcast");
+
+            Log.d(this.getClass().getSimpleName(), "send broadcast");
         }
     }
 
     private String getType(int type){
         if(type == DetectedActivity.UNKNOWN)
             return "Unknown";
+        else if(type == DetectedActivity.RUNNING)
+            return "Running";
+        else if(type == DetectedActivity.WALKING)
+            return "Walking";
         else if(type == DetectedActivity.IN_VEHICLE)
             return "In Vehicle";
         else if(type == DetectedActivity.ON_BICYCLE)

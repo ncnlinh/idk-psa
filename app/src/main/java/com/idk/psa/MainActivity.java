@@ -66,8 +66,7 @@ public class MainActivity extends ActionBarActivity implements GoogleApiClient.C
         tvActivity = (TextView) findViewById(R.id.activity);
         mResolvingError = savedInstanceState != null
                 && savedInstanceState.getBoolean(STATE_RESOLVING_ERROR, false);
-        mRunningReceiver = new RunningReceiver();
-        registerReceiver(mRunningReceiver, new IntentFilter("com.idk.psa.ACTIVITY_RECOGNITION_DATA"));
+
 
     }
 
@@ -76,7 +75,22 @@ public class MainActivity extends ActionBarActivity implements GoogleApiClient.C
         @Override
         public void onReceive(Context context, Intent intent) {
             Log.d(this.getClass().getSimpleName(),"received");
-            Toast.makeText(context, intent.getStringExtra("Activity"), Toast.LENGTH_SHORT).show();
+            tvActivity.setText(intent.getStringExtra("Activity"));
+            switch (intent.getStringExtra("Activity")) {
+                case "Running":
+                    Toast.makeText(getApplicationContext(),"DON'T USE YOUR PHONE WHILE RUNNING",Toast.LENGTH_LONG).show();
+                    Log.i("S: ", "got into running");
+                    break;
+                case "Walking":
+                    Toast.makeText(getApplicationContext(),"DON'T USE YOUR PHONE WHILE WALKING",Toast.LENGTH_LONG).show();
+                    Log.i("S: ", "got into Walking");
+                    break;
+                case "Nothing":
+                    Log.i("S: ", "got into nothing");
+                    break;
+                default:
+                    Log.i("S: ", "got into default");
+            }
         }
     }
 
@@ -85,6 +99,7 @@ public class MainActivity extends ActionBarActivity implements GoogleApiClient.C
         super.onSaveInstanceState(outState);
         outState.putBoolean(STATE_RESOLVING_ERROR, mResolvingError);
     }
+
     @Override
     protected void onStart() {
         super.onStart();
@@ -92,6 +107,8 @@ public class MainActivity extends ActionBarActivity implements GoogleApiClient.C
             mGoogleApiClient.connect();
 
         }
+        mRunningReceiver = new RunningReceiver();
+        registerReceiver(mRunningReceiver, new IntentFilter("com.idk.psa.ACTIVITY_RECOGNITION_DATA"));
     }
 
     @Override
@@ -111,7 +128,7 @@ public class MainActivity extends ActionBarActivity implements GoogleApiClient.C
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
+        // automatically handle clicks on the  Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
 
@@ -127,8 +144,9 @@ public class MainActivity extends ActionBarActivity implements GoogleApiClient.C
     public void onConnected(Bundle bundle) {
         Intent intent = new Intent(this,MainService.class);
         intent.setAction("com.idk.psa.action.START");
-        PendingIntent pendingIntent = PendingIntent.getService(this,0,intent,PendingIntent.FLAG_UPDATE_CURRENT);
+        PendingIntent pendingIntent = PendingIntent.getService(this,0,intent,PendingIntent.FLAG_CANCEL_CURRENT);
         PendingResult<Status> result = ActivityRecognition.ActivityRecognitionApi.requestActivityUpdates(mGoogleApiClient, 6000, pendingIntent);
+
         Toast.makeText(this,"Running the thingy",Toast.LENGTH_SHORT).show();
 
     }
