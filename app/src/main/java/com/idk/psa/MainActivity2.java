@@ -24,9 +24,10 @@ import android.widget.Toast;
 import java.util.List;
 
 
-public class MainActivity2 extends ActionBarActivity implements SensorEventListener {
+public class MainActivity2 extends ActionBarActivity {
     private SensorManager mSensorManager;
     private Sensor mSensor;
+    private AcceListener mAcceListener;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -38,13 +39,12 @@ public class MainActivity2 extends ActionBarActivity implements SensorEventListe
                     .commit();
         }
         mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
-        if ((mSensor = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)) != null){
+        if ((mSensor = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)) != null) {
             Log.d(this.getClass().getSimpleName(), "have sensor");
-        }
-        else {
+        } else {
             List<Sensor> sensors = mSensorManager.getSensorList(Sensor.TYPE_ALL);
-            for(int i=0; i<sensors.size(); i++) {
-                Log.d("sensors",sensors.get(i).getName());
+            for (int i = 0; i < sensors.size(); i++) {
+                Log.d("sensors", sensors.get(i).getName());
             }
             Log.d(this.getClass().getSimpleName(), "dont have sensor");
         }
@@ -55,13 +55,14 @@ public class MainActivity2 extends ActionBarActivity implements SensorEventListe
     @Override
     protected void onResume() {
         super.onResume();
-        mSensorManager.registerListener(this, mSensor,SensorManager.SENSOR_DELAY_FASTEST);
+        mAcceListener = new AcceListener(this);
+        mSensorManager.registerListener(mAcceListener, mSensor, SensorManager.SENSOR_DELAY_FASTEST);
     }
 
     @Override
     protected void onPause() {
         super.onPause();
-        mSensorManager.unregisterListener(this);
+        mSensorManager.unregisterListener(mAcceListener);
     }
 
     @Override
@@ -86,24 +87,29 @@ public class MainActivity2 extends ActionBarActivity implements SensorEventListe
         return super.onOptionsItemSelected(item);
     }
 
-
-    @Override
-    public void onSensorChanged(SensorEvent event) {
-        float gravity = SensorManager.STANDARD_GRAVITY;
-        double rootSumSquare = Math.sqrt(event.values[0]*event.values[0] +
-                event.values[1]*event.values[1] +
-                (event.values[2])*(event.values[2]));
-        if (rootSumSquare < 2.5) {
-            Toast.makeText(this, "FALLING "+ String.valueOf(rootSumSquare), Toast.LENGTH_SHORT).show();
-        } else if (rootSumSquare > 18.5) {
-            Toast.makeText(this, "IMPACT "+ String.valueOf(rootSumSquare), Toast.LENGTH_SHORT).show();
+    private class AcceListener implements SensorEventListener {
+        private Context mContext;
+        public AcceListener(Context context){
+            mContext = context;
         }
-    }
+        @Override
+        public void onSensorChanged(SensorEvent event) {
+            float gravity = SensorManager.STANDARD_GRAVITY;
+            double rootSumSquare = Math.sqrt(event.values[0] * event.values[0] +
+                    event.values[1] * event.values[1] +
+                    (event.values[2]) * (event.values[2]));
+            if (rootSumSquare < 2.5) {
+                Toast.makeText(mContext, "FALLING " + String.valueOf(rootSumSquare), Toast.LENGTH_SHORT).show();
+            } else if (rootSumSquare > 18.5) {
+                Toast.makeText(mContext, "IMPACT " + String.valueOf(rootSumSquare), Toast.LENGTH_SHORT).show();
+            }
+        }
 
-    @Override
-    public void onAccuracyChanged(Sensor sensor, int accuracy) {
+        @Override
+        public void onAccuracyChanged(Sensor sensor, int accuracy) {
 
-    }
+        }
+}
 
     /**
      * A placeholder fragment containing a simple view.
