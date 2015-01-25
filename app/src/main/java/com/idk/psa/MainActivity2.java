@@ -1,45 +1,30 @@
 package com.idk.psa;
 
 import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
-import android.hardware.SensorEventListener2;
 import android.hardware.SensorManager;
-import android.hardware.TriggerEvent;
-import android.hardware.TriggerEventListener;
-import android.support.v4.app.FragmentActivity;
-import android.support.v7.app.ActionBarActivity;
-import android.support.v7.app.ActionBar;
-import android.support.v4.app.Fragment;
 import android.os.Bundle;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentActivity;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.LayoutInflater;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.os.Build;
-import android.view.animation.Animation;
-import android.view.animation.AnimationUtils;
 import android.view.animation.BounceInterpolator;
-import android.view.animation.ScaleAnimation;
 import android.view.animation.TranslateAnimation;
 import android.widget.FrameLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 
-import com.razer.android.nabuopensdk.AuthCheckCallback;
 import com.razer.android.nabuopensdk.NabuOpenSDK;
-import com.razer.android.nabuopensdk.NabuOpenSDK.*;
-import com.razer.android.nabuopensdk.interfaces.NabuAuthListener;
 import com.razer.android.nabuopensdk.interfaces.SendNotificationListener;
 import com.razer.android.nabuopensdk.models.NabuNotification;
-import com.razer.android.nabuopensdk.models.Scope;
 
 import java.util.List;
-import java.util.zip.Inflater;
 
 
 public class MainActivity2 extends FragmentActivity {
@@ -67,6 +52,7 @@ public class MainActivity2 extends FragmentActivity {
         } else {
             Log.d(this.getClass().getSimpleName(), "dont have sensor");
         }
+        registerReceiver(new PowerConnectionReceiver(), new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
         mSdk = NabuOpenSDK.getInstance(getApplicationContext());
 //        mSdk.checkAppAuthorized(this, new AuthCheckCallback() {
 //
