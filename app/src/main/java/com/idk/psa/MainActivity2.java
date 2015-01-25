@@ -30,6 +30,14 @@ import android.widget.FrameLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.razer.android.nabuopensdk.AuthCheckCallback;
+import com.razer.android.nabuopensdk.NabuOpenSDK;
+import com.razer.android.nabuopensdk.NabuOpenSDK.*;
+import com.razer.android.nabuopensdk.interfaces.NabuAuthListener;
+import com.razer.android.nabuopensdk.interfaces.SendNotificationListener;
+import com.razer.android.nabuopensdk.models.NabuNotification;
+import com.razer.android.nabuopensdk.models.Scope;
+
 import java.util.List;
 import java.util.zip.Inflater;
 
@@ -38,7 +46,7 @@ public class MainActivity2 extends FragmentActivity {
     private SensorManager mSensorManager;
     private Sensor mSensor;
     private AcceListener mAcceListener;
-
+    NabuOpenSDK mSdk;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -49,15 +57,47 @@ public class MainActivity2 extends FragmentActivity {
                     .commit();
         }
         mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
+        List<Sensor> sensors = mSensorManager.getSensorList(Sensor.TYPE_ALL);
+        for (int i = 0; i < sensors.size(); i++) {
+            Log.d("sensors", sensors.get(i).getName());
+        }
+
         if ((mSensor = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)) != null) {
             Log.d(this.getClass().getSimpleName(), "have sensor");
         } else {
-            List<Sensor> sensors = mSensorManager.getSensorList(Sensor.TYPE_ALL);
-            for (int i = 0; i < sensors.size(); i++) {
-                Log.d("sensors", sensors.get(i).getName());
-            }
             Log.d(this.getClass().getSimpleName(), "dont have sensor");
         }
+        mSdk = NabuOpenSDK.getInstance(getApplicationContext());
+//        mSdk.checkAppAuthorized(this, new AuthCheckCallback() {
+//
+//            @Override
+//            public void onSuccess(boolean isAuthorized) {
+//                // LOGIN SUCCESSFUL
+//                Log.d(this.getClass().getSimpleName(), "login success");
+//
+//            }
+//
+//            @Override
+//            public void onFailed(String errorMessage) {
+//                // LOGIN FAILED
+//
+//                Log.d(this.getClass().getSimpleName(), "login fail");
+//
+//                mSdk.initiate(getApplicationContext(), "5b39c8d515b59b00dabebed81187347faed08d6f", new String[] {Scope.COMPLETE}, new NabuAuthListener() {
+//                    @Override
+//                    public void onAuthSuccess(String arg0) {
+//                        Log.d(this.getClass().getSimpleName(), "auth success");
+//                    }
+//
+//                    @Override
+//                    public void onAuthFailed(String arg0) {
+//                        Log.d(this.getClass().getSimpleName(), "auth fail");
+//                        Log.d(this.getClass().getSimpleName(), arg0);
+//                    }
+//                });
+//
+//            }
+//        });
     }
 
     private void RunFallingAnimation()
@@ -99,6 +139,7 @@ public class MainActivity2 extends FragmentActivity {
         if (tv == null) {
             Log.e("E", "tv null");
         }
+        
 
         tv.setText("OUCH!");
         tv.clearAnimation();
@@ -108,6 +149,12 @@ public class MainActivity2 extends FragmentActivity {
         translation.setDuration(300);
         translation.setFillAfter(true);
         tv.startAnimation(translation);
+    }
+
+    @Override
+    protected void onDestroy() {
+        mSdk.onDestroy(this);
+        super.onDestroy();
     }
 
     @Override
@@ -153,15 +200,29 @@ public class MainActivity2 extends FragmentActivity {
         @Override
         public void onSensorChanged(SensorEvent event) {
             float gravity = SensorManager.STANDARD_GRAVITY;
+
             double rootSumSquare = Math.sqrt(event.values[0] * event.values[0] +
                     event.values[1] * event.values[1] +
                     (event.values[2]) * (event.values[2]));
-            if (rootSumSquare < 2.5) {
-                // Toast.makeText(mContext, "FALLING " + String.valueOf(rootSumSquare), Toast.LENGTH_SHORT).show();
-                RunImpactAnimation();
-            } else if (rootSumSquare > 18.5) {
-                // Toast.makeText(mContext, "IMPACT " + String.valueOf(rootSumSquare), Toast.LENGTH_SHORT).show();
-                RunFallingAnimation();
+
+
+            if (rootSumSquare < 1) {
+                //Toast.makeText(mContext, "FALLING " + String.valueOf(rootSumSquare), Toast.LENGTH_SHORT).show();
+                mSdk.sendNotification(mContext ,new NabuNotification("Your phone is falling"),new SendNotificationListener() {
+                    @Override
+                    public void onSuccess(String s) {
+                        Log.d(this.getClass().getSimpleName(), "Nabu thing sent");
+                    }
+
+                    @Override
+                    public void onFailed(String s) {
+                        Log.d(this.getClass().getSimpleName(), "Nabu thing not sent");
+                    }
+                });
+                 RunImpactAnimation();
+            } else if (rootSumSquare > 18.0) {
+                //Toast.makeText(mContext, "IMPACT " + String.valueOf(rootSumSquare), Toast.LENGTH_SHORT).show();
+                 RunFallingAnimation();
             }
         }
 
